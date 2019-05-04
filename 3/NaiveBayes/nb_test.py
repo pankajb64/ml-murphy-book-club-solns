@@ -4,7 +4,8 @@ import scipy.io as sio
 
 from sklearn.metrics import zero_one_loss
 
-mat_dict = sio.loadmat('../ml_murphy/pmtk3/data/XwindowsDocData/XwindowsDocData.mat')
+#change this to where
+mat_dict = sio.loadmat('XwindowsDocData.mat')
 
 Xtrain = mat_dict['xtrain'].toarray()
 Xtest = mat_dict['xtest'].toarray()
