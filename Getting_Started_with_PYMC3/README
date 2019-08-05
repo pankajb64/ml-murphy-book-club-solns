@@ -1,2 +1,5 @@
-Adding files related to the tutorial:
+Perry: Adding files related to the tutorial:
 https://docs.pymc.io/notebooks/getting_started.html
+Ran into an issue with an undefined variable.
+but the references did not help because they either used pymc (not PyMC3) and/or still had undefined variable issues:
+https://jakevdp.github.io/blog/2014/06/14/frequentism-and-bayesianism-4-bayesian-in-python/
