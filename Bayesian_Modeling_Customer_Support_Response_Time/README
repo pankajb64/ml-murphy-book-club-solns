@@ -1,0 +1,175 @@
+
+https://towardsdatascience.com/bayesian-modeling-airlines-customer-service-twitter-response-time-74af893f02c0
+review dataframes
+see how she did that work.
+
+Add references on T tests versus Gaussian
+
+rescale the Ttest comparison to the mean-- to show the difference better.
+
+
+the above negative binomial chart is good, as she indicates
+
+but this code yeilds something like 12.8- 13.1, which I think would be too low, and not fitting with her suggestion of a match.
+
+ppc = pm.sample_posterior_predictive(trace_n, samples=1000, model=model_n)
+_, ax = plt.subplots(figsize=(10, 5))
+ax.hist([n.mean() for n in ppc['y_est']], bins=19, alpha=0.5)
+ax.axvline(df['response_time'].mean())
+ax.set(title='Posterior predictive of the mean', xlabel='mean(x)', ylabel='Frequency');
+
+
+
+This is what we get:
+
+Student t-distribution: 7.4 to 7.8
+
+Poisson distribution 13.2 to 13.36
+
+Negative Binomial distribution 13.0 to 13.6
+
+
+
+--------
+
+
+
+Runs a long time;; and gives some sample % warnings:
+
+indiv_traces = {}
+
+# Convert categorical variables to integer
+le = preprocessing.LabelEncoder()
+airlines_idx = le.fit_transform(df['author_id_y'])
+airlines = le.classes_
+n_airlines = len(airlines)
+
+for p in airlines:
+    with pm.Model() as model_h:
+        α = pm.Uniform('α', lower=0, upper=100)
+        μ = pm.Uniform('μ', lower=0, upper=60)
+        
+        data = df[df['author_id_y']==p]['response_time'].values
+        y_est = pm.NegativeBinomial('y_est', mu=μ, alpha=α, observed=data)
+
+        y_pred = pm.NegativeBinomial('y_pred', mu=μ, alpha=α)
+        
+        trace_h = pm.sample(2000, tune=2000)
+        
+        indiv_traces[p] = trace_h
+
+
+
+
+
+Warnings:
+
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:11<00:00, 685.59draws/s]
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:18<00:00, 440.40draws/s]
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [01:00<00:00, 133.18draws/s]
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:13<00:00, 578.76draws/s]
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [01:10<00:00, 75.91draws/s] 
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:20<00:00, 399.92draws/s]
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:57<00:00, 94.92draws/s] 
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:11<00:00, 679.69draws/s]
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>NUTS: [μ, α]
+>Metropolis: [y_pred]
+Sampling 2 chains: 100%|██████████| 8000/8000 [00:13<00:00, 591.76draws/s]
+The number of effective samples is smaller than 25% for some parameters.
+
+
+
+-------
+
+
+
+---
+
+
+Same thing here. Amongst the above three airlines,the distribution of AirAsia towards right, This could accurately reflect the characteristics of its response time, means in general, it takes longer for AirAsia customer service twitter to respond than those of Delta or VirginAmerica. Or it could be incomplete due to small sample size, as we have way more data from Delta than from AirAsia.
+
+
+
+I thought Bayes offered some ways to show ifyour sample was too small to make conclusions.
+see Eric Ma Pycon 2017
+
+---
+For the airlines we have relative sufficient data, for example, when we compare the above three large American airlines, the posterior predictive distribution do not seem to vary significantly.
+
+-------
+Is there a way to quantify this conclusion?
+
+---
+---MAP and sample warning:
+
+/home/perry/anaconda3/lib/python3.7/site-packages/pymc3/tuning/starting.py:61: UserWarning: find_MAP should not be used to initialize the NUTS sampler, simply call pymc3.sample() and it will automatically initialize NUTS in a better way.
+  warnings.warn('find_MAP should not be used to initialize the NUTS sampler, simply call pymc3.sample() and it will automatically initialize NUTS in a better way.')
+logp = -6.7268e+05, ||grad|| = 1,020.6: 100%|██████████| 176/176 [00:01<00:00, 95.81it/s]   
+Multiprocess sampling (2 chains in 2 jobs)
+CompoundStep
+>Metropolis: [slope_word_count]
+>Metropolis: [slope_created_at_y_is_weekend]
+>Metropolis: [intercept]
+Sampling 2 chains: 100%|██████████| 11000/11000 [03:22<00:00, 54.32draws/s]
+The estimated number of effective samples is smaller than 200 for some parameters.
+
+
+
+
+
+
+REFERENCES
+
+
+
+https://docs.pymc.io/notebooks/getting_started.html
+
+
+https://github.com/pankajb64/ml-murphy-book-club-solns/blob/master/Getting_Started_with_PYMC3/Getting%20started%20with%20PyMC3.ipynb
+
+https://medium.com/tensorflow/an-introduction-to-probabilistic-programming-now-available-in-tensorflow-probability-6dcc003ca29e
+
+
+https://mml-book.github.io/book/mml-book.pdf
